@@ -18,8 +18,7 @@ x-shared: &shared
     - N8N_PROTOCOL=${N8N_PROTOCOL}
     - N8N_RUNNERS_ENABLED=${N8N_RUNNERS_ENABLED}
     - NODE_ENV=${NODE_ENV}
-    - WEBHOOK_URL=${N8N_PROTOCOL}://${N8N_HOST}/
-    - WEBHOOK_TUNNEL_URL=${N8N_PROTOCOL}://${N8N_HOST}/
+    - WEBHOOK_URL=${NGROK_DOMAIN}
     - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
     - EXECUTIONS_MODE=queue
     - QUEUE_BULL_REDIS_HOST=redis
@@ -36,6 +35,16 @@ x-shared: &shared
       condition: service_healthy
 
 services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: always
+    command: "http n8n:5678" 
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN} 
+    ports:
+      - "4040:4040" 
+    depends_on:
+      - n8n
   postgres:
     image: postgres:17
     restart: always
@@ -48,7 +57,7 @@ services:
     ports:
       - "127.0.0.1:54322:5432"
     volumes:
-      - db_storage:/var/lib/postgresql/data
+      - ./data_postgres:/var/lib/postgresql/data
       - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
@@ -73,17 +82,3 @@ services:
     command: start
     ports:
       - "127.0.0.1:5678:5678"
-
-  n8n-worker-1:
-    <<: *shared
-    image: n8nio/n8n
-    command: worker
-    depends_on:
-      - n8n
-
-  n8n-worker-2:
-    <<: *shared
-    image: n8nio/n8n
-    command: worker
-    depends_on:
-      - n8n
