@@ -18,7 +18,7 @@ x-shared: &shared
     - N8N_PROTOCOL=${N8N_PROTOCOL}
     - N8N_RUNNERS_ENABLED=${N8N_RUNNERS_ENABLED}
     - NODE_ENV=${NODE_ENV}
-    - WEBHOOK_URL=${NGROK_DOMAIN}
+    - WEBHOOK_URL=https://biotic-nola-safely.ngrok-free.dev
     - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
     - EXECUTIONS_MODE=queue
     - QUEUE_BULL_REDIS_HOST=redis
@@ -38,7 +38,7 @@ services:
   ngrok:
     image: ngrok/ngrok:latest
     restart: always
-    command: "http n8n:5678" 
+    command: "http n8n:5678 --domain=biotic-nola-safely.ngrok-free.dev" 
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN} 
     ports:
